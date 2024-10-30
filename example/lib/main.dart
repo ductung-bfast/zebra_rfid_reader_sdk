@@ -32,10 +32,23 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     listenToEvent();
     listenToReadTags();
+    WidgetsBinding.instance.addPostFrameCallback((duration) async {
+      await requestAccess();
+      await getAvailableReaderList();
+      if ((connectedReader.connectionStatus == ConnectionStatus.connecting) ||
+          (connectedReader.connectionStatus == ConnectionStatus.connected)) {
+        return;
+      }
+      if (availableReaderList.isEmpty) {
+        return;
+      }
+      connectToZebra(availableReaderList[0].name!);
+    });
   }
 
   void listenToReadTags() {
     _zebraRfidReaderSdkPlugin.readTags.listen((event) {
+      print("readTags: $event");
       final result = jsonDecode(event.toString());
       final readTag = TagDataModel.fromJson(result);
       readTags.removeWhere((element) => element.tagId == readTag.tagId);
@@ -79,8 +92,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> requestAccess() async {
-    await Permission.bluetoothScan.request().isGranted;
-    await Permission.bluetoothConnect.request().isGranted;
+    await Permission.bluetoothScan
+        .request()
+        .isGranted;
+    await Permission.bluetoothConnect
+        .request()
+        .isGranted;
   }
 
   Future<void> getAvailableReaderList() async {
@@ -126,34 +143,50 @@ class _MyAppState extends State<MyApp> {
               const Text('DEVICES'),
               Text(
                 'Handheld Readers (${availableReaderList.length})',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    fontSize: 24, fontWeight: FontWeight.bold),
               ),
               Expanded(
                 child: ListView.builder(
-                  itemBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: ListTile(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      selectedTileColor: Colors.orange[100],
-                      tileColor: Colors.black12,
-                      onTap: () => connectedReader.connectionStatus == ConnectionStatus.connecting
-                          ? null
-                          : connectedReader.name == availableReaderList[index].name &&
-                                  connectedReader.connectionStatus == ConnectionStatus.connected
+                  itemBuilder: (context, index) =>
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          selectedTileColor: Colors.orange[100],
+                          tileColor: Colors.black12,
+                          onTap: () =>
+                          connectedReader.connectionStatus ==
+                              ConnectionStatus.connecting
+                              ? null
+                              : connectedReader.name ==
+                              availableReaderList[index].name &&
+                              connectedReader.connectionStatus ==
+                                  ConnectionStatus.connected
                               ? disconnectToZebra()
-                              : connectToZebra(availableReaderList[index].name!),
-                      contentPadding: const EdgeInsets.all(8),
-                      selectedColor: Colors.amber,
-                      title: Text(availableReaderList[index].name ?? "Unknown Device"),
-                      subtitle: connectedReader.name == availableReaderList.elementAt(index).name &&
-                              connectedReader.connectionStatus == ConnectionStatus.connected
-                          ? Text('Battery ${connectedReader.batteryLevel ?? '0'}%')
-                          : null,
-                      trailing: Text(connectedReader.name == availableReaderList.elementAt(index).name
-                          ? connectedReader.connectionStatus.name
-                          : 'Not Connected'),
-                    ),
-                  ),
+                              : connectToZebra(availableReaderList[index]
+                              .name!),
+                          contentPadding: const EdgeInsets.all(8),
+                          selectedColor: Colors.amber,
+                          title: Text(availableReaderList[index].name ??
+                              "Unknown Device"),
+                          subtitle: connectedReader.name == availableReaderList
+                              .elementAt(index)
+                              .name &&
+                              connectedReader.connectionStatus ==
+                                  ConnectionStatus.connected
+                              ? Text('Battery ${connectedReader.batteryLevel ??
+                              '0'}%')
+                              : null,
+                          trailing: Text(
+                              connectedReader.name == availableReaderList
+                                  .elementAt(index)
+                                  .name
+                                  ? connectedReader.connectionStatus.name
+                                  : 'Not Connected'),
+                        ),
+                      ),
                   itemCount: availableReaderList.length,
                 ),
               ),
@@ -168,7 +201,8 @@ class _MyAppState extends State<MyApp> {
                 },
               ),
               const SizedBox(height: 16),
-              Text('Beeper Volume: ${BeeperVolume.values[beeperVolume.toInt()].name.toUpperCase()}'),
+              Text('Beeper Volume: ${BeeperVolume.values[beeperVolume.toInt()]
+                  .name.toUpperCase()}'),
               SizedBox(
                 width: double.infinity,
                 child: CupertinoSlider(

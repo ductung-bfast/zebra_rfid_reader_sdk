@@ -28,7 +28,7 @@ class RfidEventHandler(
      * @param e The RFID read event.
      */
     override fun eventReadNotify(e: RfidReadEvents) {
-        val myTags: Array<TagData> = reader.Actions.getReadTags(100)
+        val myTags: Array<TagData> = reader.Actions.getReadTags(1)
         if (myTags != null) {
             for (index in myTags.indices) {
                 if (myTags[index].isContainsLocationInfo) {
@@ -54,7 +54,7 @@ class RfidEventHandler(
 
         /// Battery Event
         if (rfidStatusEvents.StatusEventData.statusEventType === STATUS_EVENT_TYPE.BATTERY_EVENT) {
-            val batteryData: Events.BatteryData = rfidStatusEvents.StatusEventData.BatteryData
+            val batteryData: IEvents.BatteryData = rfidStatusEvents.StatusEventData.BatteryData
             Log.d(LOG_TAG, "Battery Event: $batteryData")
             Log.d(LOG_TAG, "IS CHARGING -> ${batteryData.charging}")
 

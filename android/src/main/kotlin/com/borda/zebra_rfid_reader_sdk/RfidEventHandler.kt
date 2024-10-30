@@ -28,7 +28,7 @@ class RfidEventHandler(
      * @param e The RFID read event.
      */
     override fun eventReadNotify(e: RfidReadEvents) {
-        val myTags: Array<TagData> = reader.Actions.getReadTags(100)
+        val myTags: Array<TagData> = reader.Actions.getReadTags(1)
         if (myTags != null) {
             for (index in myTags.indices) {
                 if (myTags[index].isContainsLocationInfo) {

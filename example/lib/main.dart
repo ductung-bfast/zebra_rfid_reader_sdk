@@ -48,6 +48,7 @@ class _MyAppState extends State<MyApp> {
 
   void listenToReadTags() {
     _zebraRfidReaderSdkPlugin.readTags.listen((event) {
+      print("readTags: $event");
       final result = jsonDecode(event.toString());
       final readTag = TagDataModel.fromJson(result);
       readTags.removeWhere((element) => element.tagId == readTag.tagId);

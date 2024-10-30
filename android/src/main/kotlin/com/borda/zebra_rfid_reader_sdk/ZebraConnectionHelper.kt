@@ -34,7 +34,7 @@ class ZebraConnectionHelper(
 
     init {
         Log.d(LOG_TAG, "Creating reader for bluetooth connection")
-        readers = Readers(context, ENUM_TRANSPORT.ALL)
+        readers = Readers(context, ENUM_TRANSPORT.BLUETOOTH)
     }
 
     override fun onCleared() {
@@ -173,7 +173,7 @@ class ZebraConnectionHelper(
      * Resets the RFID reader configuration and clears associated resources.
      */
     private fun clearConfiguration() {
-        readers = Readers(context, ENUM_TRANSPORT.ALL)
+        readers = Readers(context, ENUM_TRANSPORT.BLUETOOTH)
         availableRFIDReaderList = null
         readerDevice = null
         reader = null
@@ -240,9 +240,6 @@ class ZebraConnectionHelper(
                 reader!!.Events.setAttachTagDataWithReadEvent(false)
                 reader!!.Events.setInfoEvent(true)
                 reader!!.Config.setTriggerMode(ENUM_TRIGGER_MODE.RFID_MODE, true)
-                reader!!.Config.setRFIDProfile("BALANCED_PERFORMANCE")
-                Log.d("WTF", "alo: " + reader!!.Config.getRFIDProfile())
-                Log.d("WTF", "alo2: " + reader!!.Config.getDefaultProfile())
                 reader!!.Config.startTrigger = triggerInfo.StartTrigger
                 reader!!.Config.stopTrigger = triggerInfo.StopTrigger
 
@@ -263,8 +260,6 @@ class ZebraConnectionHelper(
             } catch (e: OperationFailureException) {
                 Log.d(LOG_TAG, "OperationFailureException -> configureReader")
                 e.printStackTrace()
-            } catch (e: Exception) {
-                Log.d("WTF?", e.toString())
             }
         }
     }

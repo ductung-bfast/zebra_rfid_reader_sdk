@@ -240,6 +240,9 @@ class ZebraConnectionHelper(
                 reader!!.Events.setAttachTagDataWithReadEvent(false)
                 reader!!.Events.setInfoEvent(true)
                 reader!!.Config.setTriggerMode(ENUM_TRIGGER_MODE.RFID_MODE, true)
+                reader!!.Config.setRFIDProfile("BALANCED_PERFORMANCE")
+                Log.d("WTF", "alo: " + reader!!.Config.getRFIDProfile())
+                Log.d("WTF", "alo2: " + reader!!.Config.getDefaultProfile())
                 reader!!.Config.startTrigger = triggerInfo.StartTrigger
                 reader!!.Config.stopTrigger = triggerInfo.StopTrigger
 
@@ -260,6 +263,8 @@ class ZebraConnectionHelper(
             } catch (e: OperationFailureException) {
                 Log.d(LOG_TAG, "OperationFailureException -> configureReader")
                 e.printStackTrace()
+            } catch (e: Exception) {
+                Log.d("WTF?", e.toString())
             }
         }
     }

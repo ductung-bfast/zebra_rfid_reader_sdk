@@ -28,6 +28,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    namespace = "com.borda.zebra_rfid_reader_sdk"
+
     compileSdkVersion 34
 
     compileOptions {

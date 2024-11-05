@@ -9,6 +9,7 @@ import com.borda.zebra_rfid_reader_sdk.utils.*
 import com.zebra.rfid.api3.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.borda.zebra_rfid_reader_sdk.utils.RegionUtils
 
 
 /**
@@ -103,14 +104,13 @@ class ZebraConnectionHelper(
 
             } catch (e: OperationFailureException) {
                 if (e.results == RFIDResults.RFID_READER_REGION_NOT_CONFIGURED) {
-                    setDefaultRegion("TUR", name, readerConfig)
+                    setDefaultRegion(RegionUtils.getDefaultRegion(), name, readerConfig)
+                } else {
+                    e.printStackTrace()
+                    Log.d(LOG_TAG, "CONNECTION FAILED 2 ->  ${e.results}")
+                    ReaderResponse.setAsConnectionError()
+                    tagHandlerEvent.sendEvent(ReaderResponse.toJson())
                 }
-
-                e.printStackTrace()
-                Log.d(LOG_TAG, "CONNECTION FAILED 2 ->  ${e.results}")
-                ReaderResponse.setAsConnectionError()
-                tagHandlerEvent.sendEvent(ReaderResponse.toJson())
-
             }
         }
     }
@@ -228,7 +228,8 @@ class ZebraConnectionHelper(
             triggerInfo.StopTrigger.triggerType = STOP_TRIGGER_TYPE.STOP_TRIGGER_TYPE_IMMEDIATE
             try {
 
-                rfidEventHandler = RfidEventHandler(reader!!, tagHandlerEvent, tagFindHandler, readTagEvent)
+                rfidEventHandler =
+                    RfidEventHandler(reader!!, tagHandlerEvent, tagFindHandler, readTagEvent)
                 reader!!.Events.addEventsListener(rfidEventHandler)
                 reader!!.Events.setHandheldEvent(true)
                 reader!!.Events.setTagReadEvent(true)
@@ -308,11 +309,14 @@ class ZebraConnectionHelper(
                     val regionInfo = regions.getRegionInfo(i)
 
                     if (region == regionInfo.regionCode) {
-                        val channels = arrayOf("865700", "866300", "866900", "867500")
+                        val readerRegionInfo = reader!!.Config.getRegionInfo(regionInfo)
                         regulatoryConfig.region = regionInfo.regionCode
+                        val channels = readerRegionInfo.getSupportedChannels() ?: arrayOf("")
                         regulatoryConfig.setEnabledChannels(channels)
+                        Log.d("setEnabledChannels: ", "$region ${channels.joinToString()}")
                         regulatoryConfig.setIsHoppingOn(true)
                         reader!!.Config.regulatoryConfig = regulatoryConfig
+                        Log.d("setup region done: ", region)
                     }
                 }
                 connect(name, readerConfig)

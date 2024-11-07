@@ -106,7 +106,7 @@ class RfidEventHandler(
 
             if (triggerMode == TriggerMode.INVENTORY_PERFORM) {
                 reader.Actions.Inventory.perform()
-                Thread.sleep(500);
+//                Thread.sleep(500);
 
 
             } else if (triggerMode == TriggerMode.TAG_LOCATIONING_PERFORM) {

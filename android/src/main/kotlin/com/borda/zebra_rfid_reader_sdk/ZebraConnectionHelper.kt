@@ -243,9 +243,10 @@ class ZebraConnectionHelper(
                 reader!!.Config.setTriggerMode(ENUM_TRIGGER_MODE.RFID_MODE, true)
                 reader!!.Config.startTrigger = triggerInfo.StartTrigger
                 reader!!.Config.stopTrigger = triggerInfo.StopTrigger
+                reader!!.Config.setUniqueTagReport(false)
 
                 val s1SingulationControl = reader!!.Config.Antennas.getSingulationControl(1)
-                s1SingulationControl.session = SESSION.SESSION_S0
+                s1SingulationControl.session = SESSION.SESSION_S1
                 s1SingulationControl.Action.inventoryState = INVENTORY_STATE.INVENTORY_STATE_A
                 s1SingulationControl.Action.slFlag = SL_FLAG.SL_ALL
                 reader!!.Config.Antennas.setSingulationControl(1, s1SingulationControl)

@@ -24,9 +24,11 @@ class ZebraRfidReaderSdkPlugin : FlutterPlugin, MethodCallHandler {
     private lateinit var tagHandlerEvent: EventChannel
     private lateinit var tagFindingEvent: EventChannel
     private lateinit var readTagEvent: EventChannel
+    private lateinit var triggerEvent: EventChannel
     private lateinit var tagDataEventHandler: TagDataEventHandler
     private lateinit var readTagEventHandler: TagDataEventHandler
     private lateinit var tagFindingEventHandler: TagDataEventHandler
+    private lateinit var triggerEventHandler: TagDataEventHandler
 
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -37,18 +39,20 @@ class ZebraRfidReaderSdkPlugin : FlutterPlugin, MethodCallHandler {
         tagHandlerEvent = EventChannel(flutterPluginBinding.binaryMessenger, "tagHandlerEvent")
         tagFindingEvent = EventChannel(flutterPluginBinding.binaryMessenger, "tagFindingEvent")
         readTagEvent = EventChannel(flutterPluginBinding.binaryMessenger, "readTagEvent")
+        triggerEvent = EventChannel(flutterPluginBinding.binaryMessenger, "triggerEvent")
 
         tagDataEventHandler = TagDataEventHandler()
         tagFindingEventHandler = TagDataEventHandler()
         readTagEventHandler = TagDataEventHandler()
-
+        triggerEventHandler = TagDataEventHandler()
 
         tagHandlerEvent.setStreamHandler(tagDataEventHandler)
         tagFindingEvent.setStreamHandler(tagFindingEventHandler)
         readTagEvent.setStreamHandler(readTagEventHandler)
+        triggerEvent.setStreamHandler(triggerEventHandler)
         Log.d(LOG_TAG, "onAttachedToEngine called")
         connectionHelper =
-            ZebraConnectionHelper(flutterPluginBinding.applicationContext, tagDataEventHandler, tagFindingEventHandler, readTagEventHandler)
+            ZebraConnectionHelper(flutterPluginBinding.applicationContext, tagDataEventHandler, tagFindingEventHandler, readTagEventHandler, triggerEventHandler)
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) =
@@ -92,6 +96,14 @@ class ZebraRfidReaderSdkPlugin : FlutterPlugin, MethodCallHandler {
                 connectionHelper.stopFindingTheTag()
             }
 
+            "performInventory" -> {
+                connectionHelper.performInventory()
+            }
+
+            "stopInventory" -> {
+                connectionHelper.stopInventory()
+            }
+
             "getAvailableReaderList" -> {
                 Log.d(LOG_TAG, "getAvailableReaderList called")
                 val readers = connectionHelper.getAvailableReaderList()
@@ -115,6 +127,7 @@ class ZebraRfidReaderSdkPlugin : FlutterPlugin, MethodCallHandler {
         methodChannel.setMethodCallHandler(null)
         tagHandlerEvent.setStreamHandler(null)
         tagFindingEvent.setStreamHandler(null)
+        triggerEvent.setStreamHandler(null)
         connectionHelper.dispose()
     }
 }

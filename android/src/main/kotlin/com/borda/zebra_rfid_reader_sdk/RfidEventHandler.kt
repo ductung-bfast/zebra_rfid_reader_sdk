@@ -19,6 +19,7 @@ class RfidEventHandler(
     private var tagHandlerEvent: TagDataEventHandler,
     private var tagFindHandler: TagDataEventHandler,
     private var readTagEvent: TagDataEventHandler,
+    private var triggerEvent: TagDataEventHandler,
 ) :
     RfidEventsListener {
 
@@ -82,10 +83,12 @@ class RfidEventHandler(
 
             if (rfidStatusEvents.StatusEventData.HandheldTriggerEventData.handheldEvent === HANDHELD_TRIGGER_EVENT_TYPE.HANDHELD_TRIGGER_PRESSED) {
                 Log.d(LOG_TAG, "HANDHELD_TRIGGER_PRESSED")
+                triggerEvent.sendEvent("HANDHELD_TRIGGER_PRESSED")
                 onTriggerPressed()
             }
             if (rfidStatusEvents.StatusEventData.HandheldTriggerEventData.handheldEvent === HANDHELD_TRIGGER_EVENT_TYPE.HANDHELD_TRIGGER_RELEASED) {
                 Log.d(LOG_TAG, "HANDHELD_TRIGGER_RELEASED")
+                triggerEvent.sendEvent("HANDHELD_TRIGGER_RELEASED")
                 onTriggerReleased()
             }
         }

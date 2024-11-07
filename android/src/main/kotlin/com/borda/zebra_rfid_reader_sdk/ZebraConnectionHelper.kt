@@ -24,6 +24,7 @@ class ZebraConnectionHelper(
     private var tagHandlerEvent: TagDataEventHandler,
     private var tagFindHandler: TagDataEventHandler,
     private var readTagEvent: TagDataEventHandler,
+    private var triggerEvent: TagDataEventHandler,
 ) :
     ViewModel() {
     private var readers: Readers
@@ -169,6 +170,52 @@ class ZebraConnectionHelper(
         }
     }
 
+    @Synchronized
+    fun performInventory() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (reader != null && reader!!.isConnected) {
+                    Log.d(LOG_TAG, "performInventory called!")
+                    val s1_singulationControl = reader!!.Config.Antennas.getSingulationControl(1)
+                    s1_singulationControl.session = SESSION.SESSION_S0
+                    reader!!.Config.Antennas.setSingulationControl(1, s1_singulationControl)
+                    setAntennaConfig(270)
+                }
+            } catch (e: InvalidUsageException) {
+                e.printStackTrace()
+                Log.d(LOG_TAG, "InvalidUsageException " + e.vendorMessage)
+            } catch (e: OperationFailureException) {
+                e.printStackTrace()
+                Log.d(
+                    LOG_TAG, "OperationFailureException " + e.vendorMessage
+                )
+            }
+        }
+    }
+
+    @Synchronized
+    fun stopInventory() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (reader != null && reader!!.isConnected) {
+                    Log.d(LOG_TAG, "stopInventory called!")
+                    val s1_singulationControl = reader!!.Config.Antennas.getSingulationControl(1)
+                    s1_singulationControl.session = SESSION.SESSION_S1
+                    reader!!.Config.Antennas.setSingulationControl(1, s1_singulationControl)
+                    setAntennaConfig(120)
+                }
+            } catch (e: InvalidUsageException) {
+                e.printStackTrace()
+                Log.d(LOG_TAG, "InvalidUsageException " + e.vendorMessage)
+            } catch (e: OperationFailureException) {
+                e.printStackTrace()
+                Log.d(
+                    LOG_TAG, "OperationFailureException " + e.vendorMessage
+                )
+            }
+        }
+    }
+
     /**
      * Resets the RFID reader configuration and clears associated resources.
      */
@@ -229,7 +276,7 @@ class ZebraConnectionHelper(
             try {
 
                 rfidEventHandler =
-                    RfidEventHandler(reader!!, tagHandlerEvent, tagFindHandler, readTagEvent)
+                    RfidEventHandler(reader!!, tagHandlerEvent, tagFindHandler, readTagEvent, triggerEvent)
                 reader!!.Events.addEventsListener(rfidEventHandler)
                 reader!!.Events.setHandheldEvent(true)
                 reader!!.Events.setTagReadEvent(true)

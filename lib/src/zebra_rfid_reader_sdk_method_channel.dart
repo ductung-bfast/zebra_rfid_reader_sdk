@@ -12,6 +12,7 @@ class MethodChannelZebraRfidReaderSdk extends ZebraRfidReaderSdkPlatform {
   final EventChannel _eventChannel = const EventChannel("tagHandlerEvent");
   final EventChannel _tagFindingEventChannel = const EventChannel("tagFindingEvent");
   final EventChannel _readTagsEventChannel = const EventChannel("readTagEvent");
+  final EventChannel _triggerEventChannel = const EventChannel("triggerEvent");
 
   /// Returns a list of available readers.
   @override
@@ -73,6 +74,16 @@ class MethodChannelZebraRfidReaderSdk extends ZebraRfidReaderSdkPlatform {
     await _methodChannel.invokeMethod<void>('stopFindingTheTag');
   }
 
+  @override
+  Future<void> performInventory() async {
+    await _methodChannel.invokeMethod<void>('performInventory');
+  }
+
+  @override
+  Future<void> stopInventory() async {
+    await _methodChannel.invokeMethod<void>('stopInventory');
+  }
+
   /// Returns a stream of connected reader devices.
   @override
   Stream<dynamic> get findingTag {
@@ -82,5 +93,10 @@ class MethodChannelZebraRfidReaderSdk extends ZebraRfidReaderSdkPlatform {
   @override
   Stream<dynamic> get readTags {
     return _readTagsEventChannel.receiveBroadcastStream();
+  }
+
+  @override
+  Stream<dynamic> get trigger {
+    return _triggerEventChannel.receiveBroadcastStream();
   }
 }

@@ -12,6 +12,11 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
+sealed class ScanningState {
+    object Inventory : ScanningState()
+    class TagLocationing(val tag: String) : ScanningState()
+}
+
 /** ZebraRfidReaderSdkPlugin */
 class ZebraRfidReaderSdkPlugin : FlutterPlugin, MethodCallHandler {
     /// The MethodChannel that will the communication between Flutter and native Android
@@ -30,6 +35,7 @@ class ZebraRfidReaderSdkPlugin : FlutterPlugin, MethodCallHandler {
     private lateinit var tagFindingEventHandler: TagDataEventHandler
     private lateinit var triggerEventHandler: TagDataEventHandler
 
+    private var scanningState: ScanningState? = null
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel =
@@ -63,7 +69,18 @@ class ZebraRfidReaderSdkPlugin : FlutterPlugin, MethodCallHandler {
                 val readerConfig = call.argument<HashMap<String, Any>>("readerConfig")!!
                 Log.d(LOG_TAG, "will try to connect to -> $name")
                 Log.d(LOG_TAG, "USER CONFIG -> $readerConfig")
-                connectionHelper.connect(name, readerConfig)
+                connectionHelper.connect(name, readerConfig) { status ->
+                    if (status != ConnectionStatus.connected) return@connect
+                    when (scanningState) {
+                        is ScanningState.Inventory -> connectionHelper.performInventory()
+                        is ScanningState.TagLocationing -> {
+                            val tag = (scanningState as ScanningState.TagLocationing).tag
+                            connectionHelper.findTheTag(tag)
+                        }
+                        else -> {}
+                    }
+                }
+
             }
 
             "disconnect" -> {
@@ -89,18 +106,22 @@ class ZebraRfidReaderSdkPlugin : FlutterPlugin, MethodCallHandler {
             "findTheTag" -> {
                 val tag = call.argument<String>("tag")!!
                 Log.d("ENGIN", "findTheTag called with tag -> $tag")
+                scanningState = ScanningState.TagLocationing(tag)
                 connectionHelper.findTheTag(tag)
             }
 
             "stopFindingTheTag" -> {
+                scanningState = null
                 connectionHelper.stopFindingTheTag()
             }
 
             "performInventory" -> {
+                scanningState = ScanningState.Inventory
                 connectionHelper.performInventory()
             }
 
             "stopInventory" -> {
+                scanningState = null
                 connectionHelper.stopInventory()
             }
 

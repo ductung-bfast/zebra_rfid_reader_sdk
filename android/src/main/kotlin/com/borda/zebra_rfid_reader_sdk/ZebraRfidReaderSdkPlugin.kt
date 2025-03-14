@@ -13,6 +13,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
 sealed class ScanningState {
+    object Default : ScanningState()
     object Inventory : ScanningState()
     class TagLocationing(val tag: String) : ScanningState()
 }
@@ -35,7 +36,7 @@ class ZebraRfidReaderSdkPlugin : FlutterPlugin, MethodCallHandler {
     private lateinit var tagFindingEventHandler: TagDataEventHandler
     private lateinit var triggerEventHandler: TagDataEventHandler
 
-    private var scanningState: ScanningState? = null
+    private var scanningState: ScanningState = ScanningState.Default
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel =
@@ -77,7 +78,9 @@ class ZebraRfidReaderSdkPlugin : FlutterPlugin, MethodCallHandler {
                             val tag = (scanningState as ScanningState.TagLocationing).tag
                             connectionHelper.findTheTag(tag)
                         }
-                        else -> {}
+                        is ScanningState.Default -> {
+                            // do nothing
+                        }
                     }
                 }
 
@@ -111,7 +114,7 @@ class ZebraRfidReaderSdkPlugin : FlutterPlugin, MethodCallHandler {
             }
 
             "stopFindingTheTag" -> {
-                scanningState = null
+                scanningState = ScanningState.Default
                 connectionHelper.stopFindingTheTag()
             }
 
@@ -121,7 +124,7 @@ class ZebraRfidReaderSdkPlugin : FlutterPlugin, MethodCallHandler {
             }
 
             "stopInventory" -> {
-                scanningState = null
+                scanningState = ScanningState.Default
                 connectionHelper.stopInventory()
             }
 

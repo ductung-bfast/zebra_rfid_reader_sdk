@@ -50,7 +50,11 @@ class ZebraConnectionHelper(
      * @param readerConfig User configuration.
      */
     @Synchronized
-    fun connect(name: String, readerConfig: HashMap<String, Any>) {
+    fun connect(
+        name: String,
+        readerConfig: HashMap<String, Any>,
+        callback: ((ConnectionStatus) -> Unit)? = null
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
 
 
@@ -92,7 +96,7 @@ class ZebraConnectionHelper(
 
                             ReaderResponse.setConnectionStatus(ConnectionStatus.connected)
                             tagHandlerEvent.sendEvent(ReaderResponse.toJson())
-
+                            callback?.invoke(ConnectionStatus.connected)
                         }
                     }
                 }
@@ -102,7 +106,7 @@ class ZebraConnectionHelper(
                 Log.d(LOG_TAG, "CONNECTION FAILED 1 -> InvalidUsageException")
                 ReaderResponse.setAsConnectionError()
                 tagHandlerEvent.sendEvent(ReaderResponse.toJson())
-
+                callback?.invoke(ConnectionStatus.failed)
             } catch (e: OperationFailureException) {
                 if (e.results == RFIDResults.RFID_READER_REGION_NOT_CONFIGURED) {
                     setDefaultRegion(RegionUtils.getDefaultRegion(), name, readerConfig)
@@ -111,6 +115,7 @@ class ZebraConnectionHelper(
                     Log.d(LOG_TAG, "CONNECTION FAILED 2 ->  ${e.results}")
                     ReaderResponse.setAsConnectionError()
                     tagHandlerEvent.sendEvent(ReaderResponse.toJson())
+                    callback?.invoke(ConnectionStatus.failed)
                 }
             }
         }
